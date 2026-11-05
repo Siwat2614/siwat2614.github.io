@@ -52,8 +52,8 @@ a:focus-visible,button:focus-visible,.experience summary:focus-visible{outline-c
 .project-preview figcaption,.project-note{background:#edf3f9}
 .project-note{border-left-color:#6087b5}
 /* Project carousel is enabled only when JavaScript is available. */
-#projects .projects.carousel-track{display:flex;gap:20px;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;scrollbar-color:#a9c1dd transparent;padding:4px 2px 14px;scroll-behavior:auto;touch-action:pan-x pan-y}
-#projects .carousel-track>.project{flex:0 0 calc((100% - 20px)/2)}
+#projects .projects.carousel-track{display:flex;gap:20px;max-width:850px;margin:0 auto;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;scrollbar-color:#a9c1dd transparent;padding:4px 2px 14px;scroll-behavior:auto;touch-action:pan-x pan-y}
+#projects .carousel-track>.project{flex:0 0 100%}
 .carousel-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-10px 0 16px}.carousel-controls button{min-width:44px;min-height:44px;padding:7px 13px;color:var(--accent);background:var(--panel);border:1px solid #b7c9dd;border-radius:7px;cursor:pointer;font-weight:600}.carousel-controls button:hover{background:#e4edf8}.carousel-hint{margin-right:auto;color:var(--muted);font-size:12px}
 @media(max-width:650px){#projects .carousel-track>.project{flex-basis:100%}.carousel-hint{max-width:160px;line-height:1.5}}
 </style>
@@ -457,7 +457,7 @@ if('IntersectionObserver'in window){const observer=new IntersectionObserver(entr
  const track=section.querySelector('.projects');
  if(!track||track.children.length<2)return;
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- let playing=!reduced.matches, hovering=false, focused=false, visible=false, last=0, remainder=0;
+ let playing=!reduced.matches, hovering=false, focused=false, visible=false;
  const controls=document.createElement('div');controls.className='carousel-controls';
  const hint=document.createElement('span');hint.className='carousel-hint';
  const prev=document.createElement('button');const toggle=document.createElement('button');const next=document.createElement('button');
@@ -470,9 +470,9 @@ if('IntersectionObserver'in window){const observer=new IntersectionObserver(entr
  function stepSize(){return track.firstElementChild.getBoundingClientRect().width+parseFloat(getComputedStyle(track).columnGap||'0');}
  function normalize(){let step=stepSize();if(step>0&&track.scrollLeft>=step){track.append(track.firstElementChild);track.scrollLeft-=step;}}
  function pause(){playing=false;labels();}
- function frame(now){if(!last)last=now;let delta=Math.min(now-last,50);last=now;if(playing&&!hovering&&!focused&&visible&&!document.hidden){remainder+=delta*0.018;let px=Math.floor(remainder);if(px){track.scrollLeft+=px;remainder-=px;normalize();}}requestAnimationFrame(frame);}
+ function advance(){track.scrollBy({left:stepSize(),behavior:reduced.matches?'auto':'smooth'});}
  prev.addEventListener('click',()=>{pause();track.prepend(track.lastElementChild);track.scrollLeft=0;});
- next.addEventListener('click',()=>{pause();track.scrollBy({left:stepSize(),behavior:reduced.matches?'auto':'smooth'});});
+ next.addEventListener('click',()=>{pause();advance();});
  toggle.addEventListener('click',()=>{playing=!playing;labels();});
  track.addEventListener('scroll',normalize,{passive:true});
  track.addEventListener('mouseenter',()=>hovering=true);track.addEventListener('mouseleave',()=>hovering=false);
@@ -482,7 +482,7 @@ if('IntersectionObserver'in window){const observer=new IntersectionObserver(entr
  reduced.addEventListener('change',e=>{if(e.matches)pause();});
  document.getElementById('langToggle').addEventListener('click',labels);
  if('IntersectionObserver'in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;}).observe(section);else visible=true;
- labels();requestAnimationFrame(frame);
+ labels();setInterval(()=>{if(playing&&!hovering&&!focused&&visible&&!document.hidden)advance();},8000);
 })();
 
 </script>
