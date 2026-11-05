@@ -79,9 +79,42 @@ nav a{transition:color .2s ease,box-shadow .2s ease}
 @media(hover:hover){.panel:hover,.skill:hover,.experience:hover{transform:translateY(-4px);border-color:#aec7e4;box-shadow:0 14px 32px rgba(23,54,94,.1)}.btn:hover,.social a:hover,.carousel-controls button:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(24,83,160,.14)}}
 @media(prefers-reduced-motion:no-preference){.hero-copy,.portrait-wrap{animation:enter-soft .65s ease both}.portrait-wrap{animation-delay:.12s}.motion-enter{animation:enter-soft .6s ease both}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+/* A short, skippable introduction shown once per browsing session. */
+.intro-screen[hidden]{display:none}
+.intro-screen{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;overflow:hidden;background:#10243f;color:#fff;transition:opacity .4s ease,visibility .4s ease}
+.intro-screen.is-closing{opacity:0;visibility:hidden;pointer-events:none}
+.intro-screen::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,#245796 0,transparent 55%),linear-gradient(145deg,#0d1c33,#16375f);opacity:.9}
+.intro-content{position:relative;text-align:center;padding:28px;animation:intro-rise .7s ease both}
+.intro-mark{display:inline-block;color:#83bcff;font:600 clamp(38px,8vw,64px)/1 "Space Grotesk",sans-serif;letter-spacing:-4px;margin-bottom:18px}
+.intro-title{margin:0;font:700 clamp(25px,5vw,43px)/1.3 "Space Grotesk",sans-serif;letter-spacing:2px}
+.intro-subtitle{margin:12px 0 0;color:#d4e3f4;font:500 11px/1.7 "Space Grotesk",sans-serif;letter-spacing:3px;text-transform:uppercase}
+.intro-progress{height:2px;width:160px;max-width:55vw;margin:30px auto 0;overflow:hidden;background:#ffffff38;border-radius:2px}
+.intro-progress::after{content:"";display:block;width:100%;height:100%;background:#a9d1ff;transform-origin:left;animation:intro-progress 2s linear both}
+.intro-skip{position:absolute;right:clamp(18px,4vw,48px);top:clamp(18px,4vw,36px);min-height:44px;padding:8px 16px;border:1px solid #ffffff8c;border-radius:7px;background:#ffffff12;color:#fff;cursor:pointer;font-size:13px}
+.intro-skip:hover{background:#ffffff29}.intro-skip:focus-visible{outline:3px solid #fff;outline-offset:4px}
+@keyframes intro-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes intro-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){.intro-screen{display:none!important}}
 </style>
 </head>
 <body>
+<div class="intro-screen" id="intro-screen" role="region" aria-label="Portfolio introduction" hidden>
+ <div class="intro-content"><span class="intro-mark" aria-hidden="true">&lt;/&gt;</span><p class="intro-title">SIWAT NAKNGAM</p><p class="intro-subtitle">Software · Data · IT</p><div class="intro-progress" aria-hidden="true"></div></div>
+ <button class="intro-skip" type="button">ข้าม Intro / Skip</button>
+</div>
+<script>
+(()=>{
+ const intro=document.getElementById('intro-screen');
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ try{if(sessionStorage.getItem('siwat-intro-seen'))return;sessionStorage.setItem('siwat-intro-seen','1');}catch{}
+ intro.hidden=false;
+ let closed=false;
+ function dismiss(){if(closed)return;closed=true;intro.classList.add('is-closing');setTimeout(()=>{intro.hidden=true;},420);}
+ intro.querySelector('.intro-skip').addEventListener('click',dismiss);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape')dismiss();});
+ setTimeout(dismiss,2200);
+})();
+</script>
 <a class="skip-link" href="#main-content" data-i18n="skip">ข้ามไปเนื้อหา</a>
 <div class="wrap">
 <header>
