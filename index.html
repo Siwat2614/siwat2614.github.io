@@ -61,6 +61,24 @@ a:focus-visible,button:focus-visible,.experience summary:focus-visible{outline-c
 #projects .carousel-track .project-note{margin-top:20px}
 .carousel-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-10px 0 16px}.carousel-controls button{min-width:44px;min-height:44px;padding:7px 13px;color:var(--accent);background:var(--panel);border:1px solid #b7c9dd;border-radius:7px;cursor:pointer;font-weight:600}.carousel-controls button:hover{background:#e4edf8}.carousel-hint{margin-right:auto;color:var(--muted);font-size:12px}
 @media(max-width:650px){#projects .carousel-track>.project{flex-basis:100%}.carousel-hint{max-width:160px;line-height:1.5}}
+/* Subtle depth and feedback throughout the portfolio. */
+body{background:radial-gradient(ellipse at 85% 2%,#e4eefb 0,transparent 36rem),var(--bg)}
+header{transition:box-shadow .25s ease,background-color .25s ease}
+header.is-scrolled{box-shadow:0 8px 24px rgba(23,40,63,.06)}
+.section-kicker{display:inline-flex;align-items:center;gap:10px}
+.section-kicker::before{content:"";width:22px;height:2px;background:var(--accent);border-radius:2px}
+.portrait-wrap{background:linear-gradient(145deg,#e7f1fc,#cbdcf1);box-shadow:0 18px 44px rgba(34,71,116,.09)}
+.panel,.skill,.project,.experience{box-shadow:0 8px 24px rgba(23,40,63,.035);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.btn,.social a,.lang,.menu-toggle,.carousel-controls button{position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease,color .2s ease,border-color .2s ease}
+.btn:active,.social a:active,.lang:active,.menu-toggle:active,.carousel-controls button:active{transform:scale(.96)}
+.contact-box{background:linear-gradient(125deg,#e6effa,#f2f7fc)}
+nav a{transition:color .2s ease,box-shadow .2s ease}
+.tap-wave{position:absolute;pointer-events:none;border-radius:50%;background:currentColor;opacity:.15;width:12px;height:12px;transform:translate(-50%,-50%) scale(0);animation:tap-wave .55s ease-out forwards}
+@keyframes tap-wave{to{transform:translate(-50%,-50%) scale(18);opacity:0}}
+@keyframes enter-soft{from{opacity:.35;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(hover:hover){.panel:hover,.skill:hover,.experience:hover{transform:translateY(-4px);border-color:#aec7e4;box-shadow:0 14px 32px rgba(23,54,94,.1)}.btn:hover,.social a:hover,.carousel-controls button:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(24,83,160,.14)}}
+@media(prefers-reduced-motion:no-preference){.hero-copy,.portrait-wrap{animation:enter-soft .65s ease both}.portrait-wrap{animation-delay:.12s}.motion-enter{animation:enter-soft .6s ease both}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -490,6 +508,27 @@ if('IntersectionObserver'in window){const observer=new IntersectionObserver(entr
  document.getElementById('langToggle').addEventListener('click',labels);
  if('IntersectionObserver'in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;}).observe(section);else visible=true;
  labels();requestAnimationFrame(frame);
+})();
+
+// Reveal visible sections once; the content stays visible without JavaScript.
+(()=>{
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+ if('IntersectionObserver'in window&&!reduce.matches){
+  const reveal=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('motion-enter');reveal.unobserve(entry.target);}})},{threshold:.12});
+  document.querySelectorAll('main>section .section-kicker, main>section h2, .about-grid, .skills, .approach, .contact-box').forEach(el=>reveal.observe(el));
+ }
+ const header=document.querySelector('header');
+ const updateHeader=()=>header.classList.toggle('is-scrolled',window.scrollY>20);
+ addEventListener('scroll',updateHeader,{passive:true});updateHeader();
+ document.addEventListener('pointerdown',event=>{
+  if(reduce.matches)return;
+  const control=event.target.closest('.btn,.social a,.lang,.menu-toggle,.carousel-controls button');
+  if(!control)return;
+  const rect=control.getBoundingClientRect(),wave=document.createElement('span');
+  wave.className='tap-wave';wave.setAttribute('aria-hidden','true');
+  wave.style.left=(event.clientX-rect.left)+'px';wave.style.top=(event.clientY-rect.top)+'px';
+  control.append(wave);wave.addEventListener('animationend',()=>wave.remove(),{once:true});
+ });
 })();
 
 </script>
