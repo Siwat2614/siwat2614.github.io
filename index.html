@@ -52,8 +52,13 @@ a:focus-visible,button:focus-visible,.experience summary:focus-visible{outline-c
 .project-preview figcaption,.project-note{background:#edf3f9}
 .project-note{border-left-color:#6087b5}
 /* Project carousel is enabled only when JavaScript is available. */
-#projects .projects.carousel-track{display:flex;gap:20px;max-width:850px;margin:0 auto;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;scrollbar-color:#a9c1dd transparent;padding:4px 2px 14px;scroll-behavior:auto;touch-action:pan-x pan-y}
-#projects .carousel-track>.project{flex:0 0 100%}
+#projects .projects.carousel-track{display:flex;gap:24px;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;scrollbar-color:#a9c1dd transparent;padding:4px 2px 16px;scroll-behavior:auto;touch-action:pan-x pan-y}
+#projects .carousel-track>.project{flex:0 0 calc((100% - 24px)/2)}
+#projects .carousel-track .project h3{line-height:1.45;margin:16px 0 14px}
+#projects .carousel-track .project p,#projects .carousel-track .project li{font-size:14px;line-height:1.9}
+#projects .carousel-track .project ul{margin:16px 0 20px;padding-left:20px}
+#projects .carousel-track .project li+li{margin-top:12px}
+#projects .carousel-track .project-note{margin-top:20px}
 .carousel-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-10px 0 16px}.carousel-controls button{min-width:44px;min-height:44px;padding:7px 13px;color:var(--accent);background:var(--panel);border:1px solid #b7c9dd;border-radius:7px;cursor:pointer;font-weight:600}.carousel-controls button:hover{background:#e4edf8}.carousel-hint{margin-right:auto;color:var(--muted);font-size:12px}
 @media(max-width:650px){#projects .carousel-track>.project{flex-basis:100%}.carousel-hint{max-width:160px;line-height:1.5}}
 </style>
@@ -457,7 +462,7 @@ if('IntersectionObserver'in window){const observer=new IntersectionObserver(entr
  const track=section.querySelector('.projects');
  if(!track||track.children.length<2)return;
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- let playing=!reduced.matches, hovering=false, focused=false, visible=false;
+ let playing=!reduced.matches, hovering=false, focused=false, visible=false, last=0, remainder=0;
  const controls=document.createElement('div');controls.className='carousel-controls';
  const hint=document.createElement('span');hint.className='carousel-hint';
  const prev=document.createElement('button');const toggle=document.createElement('button');const next=document.createElement('button');
@@ -469,20 +474,22 @@ if('IntersectionObserver'in window){const observer=new IntersectionObserver(entr
  function labels(){const th=document.documentElement.lang==='th';hint.textContent=th?'เลื่อนหรือปัดเพื่อดูผลงาน':'Scroll or swipe to explore';prev.setAttribute('aria-label',th?'ผลงานก่อนหน้า':'Previous project');next.setAttribute('aria-label',th?'ผลงานถัดไป':'Next project');toggle.textContent=playing?(th?'หยุด':'Pause'):(th?'เล่น':'Play');toggle.setAttribute('aria-label',playing?(th?'หยุดเลื่อนอัตโนมัติ':'Pause automatic scrolling'):(th?'เริ่มเลื่อนอัตโนมัติ':'Start automatic scrolling'));track.setAttribute('aria-label',th?'รายการผลงาน เลื่อนซ้ายหรือขวาเพื่อดู':'Projects. Scroll left or right to explore');}
  function stepSize(){return track.firstElementChild.getBoundingClientRect().width+parseFloat(getComputedStyle(track).columnGap||'0');}
  function normalize(){let step=stepSize();if(step>0&&track.scrollLeft>=step){track.append(track.firstElementChild);track.scrollLeft-=step;}}
+ function align(){const step=stepSize();if(step>0)track.scrollTo({left:Math.round(track.scrollLeft/step)*step,behavior:reduced.matches?'auto':'smooth'});}
  function pause(){playing=false;labels();}
  function advance(){track.scrollBy({left:stepSize(),behavior:reduced.matches?'auto':'smooth'});}
+ function frame(now){if(!last)last=now;const delta=Math.min(now-last,50);last=now;if(playing&&!hovering&&!focused&&visible&&!document.hidden){remainder+=delta*0.024;const pixels=Math.floor(remainder);if(pixels){track.scrollLeft+=pixels;remainder-=pixels;normalize();}}requestAnimationFrame(frame);}
  prev.addEventListener('click',()=>{pause();track.prepend(track.lastElementChild);track.scrollLeft=0;});
  next.addEventListener('click',()=>{pause();advance();});
- toggle.addEventListener('click',()=>{playing=!playing;labels();});
+ toggle.addEventListener('click',()=>{playing=!playing;if(!playing)align();labels();});
  track.addEventListener('scroll',normalize,{passive:true});
- track.addEventListener('mouseenter',()=>hovering=true);track.addEventListener('mouseleave',()=>hovering=false);
+ track.addEventListener('mouseenter',()=>{hovering=true;align();});track.addEventListener('mouseleave',()=>hovering=false);
  track.addEventListener('focusin',()=>focused=true);track.addEventListener('focusout',e=>{if(!track.contains(e.relatedTarget))focused=false;});
  track.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.pointerType==='pen')pause();},{passive:true});
  track.addEventListener('keydown',e=>{if(e.target!==track)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();(e.key==='ArrowLeft'?prev:next).click();}});
  reduced.addEventListener('change',e=>{if(e.matches)pause();});
  document.getElementById('langToggle').addEventListener('click',labels);
  if('IntersectionObserver'in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;}).observe(section);else visible=true;
- labels();setInterval(()=>{if(playing&&!hovering&&!focused&&visible&&!document.hidden)advance();},8000);
+ labels();requestAnimationFrame(frame);
 })();
 
 </script>
